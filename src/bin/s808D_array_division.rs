@@ -1,5 +1,45 @@
+// 808D: Array Division
+// Problem: https://codeforces.com/problemset/problem/808/D
+// Rating: 1900
+// Tags: binary search, data structures, implementation
+//
+#![allow(dead_code)]
+
 use std::collections::HashMap;
 use std::io::{self, Read};
+
+struct Scanner<'a> {
+    tokens: std::str::SplitWhitespace<'a>,
+}
+
+impl<'a> Scanner<'a> {
+    fn new(input: &'a str) -> Self {
+        Self {
+            tokens: input.split_whitespace(),
+        }
+    }
+
+    fn next<T: std::str::FromStr>(&mut self) -> T {
+        self.tokens
+            .next()
+            .expect("input is missing a value")
+            .parse()
+            .ok()
+            .expect("input contains an invalid value")
+    }
+}
+
+fn solve(input: &str) -> String {
+    let mut scanner = Scanner::new(input);
+    let n: usize = scanner.next();
+    let values: Vec<i64> = (0..n).map(|_| scanner.next()).collect();
+
+    if can_divide_after_one_move(&values) {
+        "YES".to_owned()
+    } else {
+        "NO".to_owned()
+    }
+}
 
 fn can_divide_after_one_move(values: &[i64]) -> bool {
     // Both parts must be non-empty, so an array with fewer than two values
@@ -62,21 +102,7 @@ fn decrement_count(counts: &mut HashMap<i64, usize>, value: i64) {
     }
 }
 
-fn solve(input: &str) -> String {
-    // Parse the Codeforces input and return only the required answer text.
-    let mut tokens = input.split_whitespace();
-    let n: usize = tokens.next().unwrap().parse().unwrap();
-    let values: Vec<i64> = tokens.take(n).map(|token| token.parse().unwrap()).collect();
-
-    if can_divide_after_one_move(&values) {
-        "YES".to_owned()
-    } else {
-        "NO".to_owned()
-    }
-}
-
 fn main() {
-    // Read all stdin so solve can be tested independently from I/O.
     let mut input = String::new();
     io::stdin().read_to_string(&mut input).unwrap();
     println!("{}", solve(&input));
