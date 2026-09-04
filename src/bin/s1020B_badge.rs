@@ -43,59 +43,47 @@ fn solve(input: &str) -> String {
 }
 
 fn calculate_badge_distribution(n: usize, edges: &[usize]) -> Vec<usize> {
-    let mut badges = vec![-1i32; n];
+    let mut in_degree = vec![0; n];
+    let mut ans = vec![0; n];
 
-    #[derive(Debug, Clone, PartialEq, Eq)]
-    enum State {
-        Unvisited,
-        Visiting,
-        Visited,
+    for &to in edges {
+        in_degree[to - 1] += 1;
     }
-    let mut states = vec![State::Unvisited; n];
 
-    for i_start in 0..n {
-        if badges[i_start] != -1 {
-            continue; // already assigned a badge
-        }
-
-        let mut i = i_start;
-        // go over all nodes
-        while states[i] == State::Unvisited {
-            states[i] = State::Visiting;
-            i = edges[i] - 1;
-        }
-
-        // if we reach a node that is already visited, it means we have found a cycle
-        if states[i] == State::Visiting {
-            let cycle_start = i;
-            // go from start to cycle start and assign badges
-            i = i_start;
-            while i != cycle_start {
-                badges[i] = (cycle_start + 1) as i32;
-                i = edges[i] - 1;
-                states[i] = State::Visited;
-            }
-
-            // go over the cycle from cycle start and assign badges
-            i = cycle_start;
-            while badges[i] == -1 {
-                badges[i] = (i + 1) as i32;
-                i = edges[i] - 1;
-                states[i] = State::Visited;
-            }
-        } else {
-            // if we reach a node that is already visited, it means we have reached a node that has already been assigned a badge
-            let badge = badges[i];
-            i = i_start;
-            while badges[i] == -1 {
-                badges[i] = badge;
-                i = edges[i] - 1;
-                states[i] = State::Visited;
-            }
+    // find all vectrices not in cycles
+    let mut queue = Vec::new();
+    for i in 0..n {
+        if in_degree[i] == 0 {
+            queue.push(i);
         }
     }
 
-    return badges.into_iter().map(|b| b as usize).collect();
+    // cut all vertices not in cycles
+    let mut head = 0;
+    while head < queue.len() {
+        let u = queue[head];
+        head += 1;
+        let v = edges[u] - 1;
+        in_degree[v] -= 1;
+        if in_degree[v] == 0 {
+            queue.push(v);
+        }
+    }
+
+    // all renaming vertices are in cycles, we can assign them badges
+    for i in 0..n {
+        if in_degree[i] > 0 {
+            ans[i] = i + 1;
+        }
+    }
+
+    // for each vertex in the queue, assign it the same badge as its parent
+    for &u in queue.iter().rev() {
+        let v = edges[u] - 1;
+        ans[u] = ans[v];
+    }
+
+    ans
 }
 
 fn main() {
